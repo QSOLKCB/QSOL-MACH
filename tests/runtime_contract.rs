@@ -29,10 +29,7 @@ impl Executor for CountingExecutor {
     type Output = &'static str;
     type Error = &'static str;
 
-    fn execute(
-        &mut self,
-        _action: &Action,
-    ) -> Result<ExecutionReceipt<Self::Output>, Self::Error> {
+    fn execute(&mut self, _action: &Action) -> Result<ExecutionReceipt<Self::Output>, Self::Error> {
         self.calls += 1;
         if self.fail {
             return Err("executor failed");
@@ -48,8 +45,8 @@ impl Executor for CountingExecutor {
 
 fn runtime_with_retention(threshold: usize, retention: usize) -> Runtime {
     let tool = ToolId::new("read_file").unwrap();
-    let contract = ToolContract::new(tool, [("path", ValueKind::Text)])
-        .allow([("encoding", ValueKind::Text)]);
+    let contract =
+        ToolContract::new(tool, [("path", ValueKind::Text)]).allow([("encoding", ValueKind::Text)]);
     let mut contracts = ContractSet::default();
     contracts.insert(contract);
 
@@ -65,8 +62,7 @@ fn runtime(threshold: usize) -> Runtime {
 }
 
 fn read_action(path: &str) -> Action {
-    Action::new(ToolId::new("read_file").unwrap())
-        .with_argument("path", Value::Text(path.into()))
+    Action::new(ToolId::new("read_file").unwrap()).with_argument("path", Value::Text(path.into()))
 }
 
 #[test]
@@ -150,8 +146,8 @@ fn unexpected_field_is_blocked_before_execution() {
 fn wrong_value_kind_is_blocked_before_execution() {
     let mut runtime = runtime(3);
     let mut executor = CountingExecutor::default();
-    let action = Action::new(ToolId::new("read_file").unwrap())
-        .with_argument("path", Value::Integer(7));
+    let action =
+        Action::new(ToolId::new("read_file").unwrap()).with_argument("path", Value::Integer(7));
 
     let outcome = runtime.submit(action, &mut executor);
 
@@ -231,9 +227,11 @@ fn useful_read_only_actions_count_as_task_progress() {
         panic!("expected execution");
     };
     assert_eq!(runtime.trajectory().no_progress_streak(), 0);
-    assert!(!signals
-        .iter()
-        .any(|signal| matches!(signal, TrajectorySignal::NoProgress { .. })));
+    assert!(
+        !signals
+            .iter()
+            .any(|signal| matches!(signal, TrajectorySignal::NoProgress { .. }))
+    );
 }
 
 #[test]
