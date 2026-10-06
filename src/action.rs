@@ -40,11 +40,38 @@ impl fmt::Display for ActionError {
 
 impl Error for ActionError {}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ValueKind {
+    Text,
+    Integer,
+    Bool,
+}
+
+impl fmt::Display for ValueKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Text => f.write_str("text"),
+            Self::Integer => f.write_str("integer"),
+            Self::Bool => f.write_str("bool"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
     Text(String),
     Integer(i64),
     Bool(bool),
+}
+
+impl Value {
+    pub fn kind(&self) -> ValueKind {
+        match self {
+            Self::Text(_) => ValueKind::Text,
+            Self::Integer(_) => ValueKind::Integer,
+            Self::Bool(_) => ValueKind::Bool,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -6,12 +6,12 @@ The roadmap deliberately separates runtime semantics from inference-engine optim
 
 **Status: implemented by the initial PR.**
 
-- typed actions;
-- deterministic tool contracts;
+- typed actions and value kinds;
+- deterministic typed tool contracts;
 - validate-before-execute dispatch;
-- execution receipts;
-- trajectory recording;
-- repeated-action and no-progress signals;
+- typed execution outputs and explicit unknown outcomes;
+- bounded trajectory recording with incremental streak state;
+- repeated-action and task-progress signals;
 - tests and CI;
 - benchmark and invariant contracts.
 

@@ -16,11 +16,13 @@ Rather than optimizing only tokens per second, MACH targets **time to successful
 
 The initial runtime kernel provides:
 
-- typed actions and arguments;
-- deterministic tool contracts;
-- pre-execution action validation;
+- typed actions, values, and argument value-kind contracts;
+- deterministic pre-execution validation;
 - executor dispatch behind a narrow trait;
-- trajectory recording;
+- successful tool outputs carried through typed execution receipts;
+- explicit successful versus unknown dispatch outcomes;
+- separate environment-change and task-progress evidence;
+- bounded trajectory retention with O(1) streak maintenance;
 - repeated-action and no-progress signals;
 - zero third-party runtime dependencies;
 - CI for formatting, linting, and tests.

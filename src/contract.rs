@@ -1,23 +1,27 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt;
 
-use crate::{Action, ToolId};
+use crate::{Action, ToolId, ValueKind};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ToolContract {
     tool: ToolId,
-    required: BTreeSet<String>,
-    allowed: BTreeSet<String>,
+    required: BTreeMap<String, ValueKind>,
+    allowed: BTreeMap<String, ValueKind>,
 }
 
 impl ToolContract {
     pub fn new<I, S>(tool: ToolId, required: I) -> Self
     where
-        I: IntoIterator<Item = S>,
+        I: IntoIterator<Item = (S, ValueKind)>,
         S: Into<String>,
     {
-        let required: BTreeSet<String> = required.into_iter().map(Into::into).collect();
+        let required: BTreeMap<String, ValueKind> = required
+            .into_iter()
+            .map(|(name, kind)| (name.into(), kind))
+            .collect();
+
         Self {
             tool,
             allowed: required.clone(),
@@ -27,10 +31,12 @@ impl ToolContract {
 
     pub fn allow<I, S>(mut self, optional: I) -> Self
     where
-        I: IntoIterator<Item = S>,
+        I: IntoIterator<Item = (S, ValueKind)>,
         S: Into<String>,
     {
-        self.allowed.extend(optional.into_iter().map(Into::into));
+        for (name, kind) in optional {
+            self.allowed.entry(name.into()).or_insert(kind);
+        }
         self
     }
 
@@ -41,7 +47,7 @@ impl ToolContract {
     fn validate(&self, action: &Action) -> Result<(), ContractViolation> {
         if let Some(field) = self
             .required
-            .iter()
+            .keys()
             .find(|field| !action.arguments().contains_key(*field))
         {
             return Err(ContractViolation::MissingRequiredField {
@@ -53,12 +59,28 @@ impl ToolContract {
         if let Some(field) = action
             .arguments()
             .keys()
-            .find(|field| !self.allowed.contains(*field))
+            .find(|field| !self.allowed.contains_key(*field))
         {
             return Err(ContractViolation::UnexpectedField {
                 tool: self.tool.clone(),
                 field: field.clone(),
             });
+        }
+
+        for (field, value) in action.arguments() {
+            let expected = self
+                .allowed
+                .get(field)
+                .expect("unexpected fields are rejected above");
+            let actual = value.kind();
+            if *expected != actual {
+                return Err(ContractViolation::WrongValueKind {
+                    tool: self.tool.clone(),
+                    field: field.clone(),
+                    expected: *expected,
+                    actual,
+                });
+            }
         }
 
         Ok(())
@@ -95,8 +117,20 @@ impl ContractSet {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ContractViolation {
     UnknownTool(ToolId),
-    MissingRequiredField { tool: ToolId, field: String },
-    UnexpectedField { tool: ToolId, field: String },
+    MissingRequiredField {
+        tool: ToolId,
+        field: String,
+    },
+    UnexpectedField {
+        tool: ToolId,
+        field: String,
+    },
+    WrongValueKind {
+        tool: ToolId,
+        field: String,
+        expected: ValueKind,
+        actual: ValueKind,
+    },
 }
 
 impl fmt::Display for ContractViolation {
@@ -109,6 +143,15 @@ impl fmt::Display for ContractViolation {
             Self::UnexpectedField { tool, field } => {
                 write!(f, "tool {tool} received unexpected field {field}")
             }
+            Self::WrongValueKind {
+                tool,
+                field,
+                expected,
+                actual,
+            } => write!(
+                f,
+                "tool {tool} field {field} expects {expected}, received {actual}"
+            ),
         }
     }
 }

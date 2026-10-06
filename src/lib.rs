@@ -11,7 +11,9 @@ pub mod contract;
 pub mod runtime;
 pub mod trajectory;
 
-pub use action::{Action, ActionError, ToolId, Value};
+pub use action::{Action, ActionError, ToolId, Value, ValueKind};
 pub use contract::{ContractSet, ContractViolation, ToolContract};
 pub use runtime::{ExecutionReceipt, Executor, Runtime, StepOutcome};
-pub use trajectory::{ActionRecord, Trajectory, TrajectorySignal};
+pub use trajectory::{
+    ActionOutcome, ActionRecord, TaskProgress, Trajectory, TrajectorySignal,
+};
