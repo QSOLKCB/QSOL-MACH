@@ -1,0 +1,18 @@
+[package]
+name = "qsol-mach"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+description = "Deterministic low-latency runtime substrate for LLM agents and tool-using systems"
+repository = "https://github.com/QSOLKCB/QSOL-MACH"
+
+[lib]
+name = "qsol_mach"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qsol-mach"
+path = "src/main.rs"
+
+[dependencies]
